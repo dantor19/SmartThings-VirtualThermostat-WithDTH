@@ -1,8 +1,8 @@
 definition(
     name: "Virtual Thermostat With Device",
     namespace: "piratemedia/smartthings",
-    author: "Eliot S.",
-    description: "Control a heater in conjunction with any temperature sensor, like a SmartSense Multi.",
+    author: "Eliot S. - Modified for cooling by Daniel K.",
+    description: "Control an AC in conjunction with any temperature sensor, like a SmartSense Multi.",
     category: "Green Living",
     iconUrl: "https://raw.githubusercontent.com/eliotstocker/SmartThings-VirtualThermostat-WithDTH/master/logo-small.png",
     iconX2Url: "https://raw.githubusercontent.com/eliotstocker/SmartThings-VirtualThermostat-WithDTH/master/logo.png"
@@ -12,16 +12,16 @@ preferences {
 	section("Choose a temperature sensor(s)... (If multiple sensors are selected, the average value will be used)"){
 		input "sensors", "capability.temperatureMeasurement", title: "Sensor", multiple: true
 	}
-	section("Select the heater outlet(s)... "){
+	section("Select the AC outlet(s)... "){
 		input "outlets", "capability.switch", title: "Outlets", multiple: true
 	}
-	section("Only heat when contact isnt open (optional, leave blank to not require contact sensor)..."){
+	section("Only cool when contact isnt open (optional, leave blank to not require contact sensor)..."){
 		input "motion", "capability.contactSensor", title: "Contact", required: false
 	}
-	section("Never go below this temperature: (optional)"){
+	section("Never go above this temperature: (optional)"){
 		input "emergencySetpoint", "decimal", title: "Emergency Temp", required: false
 	}
-	section("Temperature Threshold (Don't allow heating to go above or bellow this amount from set temperature)") {
+	section("Temperature Threshold (Don't allow cooling to go above or bellow this amount from set temperature)") {
 		input "threshold", "decimal", "title": "Temperature Threshold", required: false, defaultValue: 1.0
 	}
 }
@@ -108,7 +108,7 @@ def temperatureHandler(evt)
         state.lastTemp = evt.doubleValue
 	}
 	else {
-		heatingOff()
+		coolingOff()
 	}
 }
 
@@ -125,7 +125,7 @@ def motionHandler(evt)
 	} else if (evt.value == "open") {
         log.debug "should turn heating off"
     	state.contact = false
-	    heatingOff()
+	    coolingOff()
 	}
 }
 
@@ -139,7 +139,7 @@ def thermostatTemperatureHandler(evt) {
 		evaluate(thisTemp, temperature)
 	}
 	else {
-		heatingOff()
+		coolingOff()
 	}
 }
 
@@ -153,7 +153,8 @@ def thermostatModeHandler(evt) {
 		evaluate(thisTemp, thermostat.currentValue("thermostatSetpoint"))
 	}
 	else {
-		heatingOff(mode == 'heat' ? false : true)
+		coolingOff(mode == 'cool' ? false : true)
+        // *change from heat
 	}
 }
 
@@ -161,37 +162,44 @@ private evaluate(currentTemp, desiredTemp)
 {
 	log.debug "EVALUATE($currentTemp, $desiredTemp)"
 	// heater
-	if ( (desiredTemp - currentTemp >= threshold)) {
-		heatingOn()
-	}
-	if ( (currentTemp - desiredTemp >= threshold)) {
-		heatingOff()
-	}
+    
+    if ( (desiredTemp - currentTemp <= threshold)) {
+		coolingOn()
+	//	} else if ( (currentTemp - desiredTemp >= threshold)) {
+	} else if ( (currentTemp - desiredTemp <= threshold))
+		coolingOff()
+      else if(state.current == "on") {
+      updateTimings()
+    }
 }
+    // swapped cooling state's, and swapped order of statements
 
-def heatingOn() {
-    if(thermostat.currentValue('thermostatMode') == 'heat' || force) {
+
+def coolingOn() {
+    if(thermostat.currentValue('thermostatMode') == 'cool' || force) {
     	log.debug "Heating on Now"
         outlets.on()
-        thermostat.setHeatingStatus(true)
+        //outlets.off makes all temperature changes turn outlets off
+        thermostat.setCoolingStatus(true)
     } else {
-        heatingOff(true)
+        coolingOff(true)
     }
 }
 
-def heatingOff(heatingOff) {
+def coolingOff(coolingOff) {
 	def thisTemp = getAverageTemperature()
-    if (thisTemp <= emergencySetpoint) {
+    if (thisTemp >= emergencySetpoint) {
         log.debug "Heating in Emergency Mode Now"
         outlet.on()
         thermostat.setEmergencyMode(true)
     } else {
     	log.debug "Heating off Now"
     	outlets.off()
-		if(heatingOff) {
-			thermostat.setHeatingOff(true)
+        //outletsOff()//
+		if(coolingOff) {
+			thermostat.setCoolingOff(true)
 		} else {
-			thermostat.setHeatingStatus(false)
+			thermostat.setCoolingStatus(false)
 		}
-    }
+     }
 }
