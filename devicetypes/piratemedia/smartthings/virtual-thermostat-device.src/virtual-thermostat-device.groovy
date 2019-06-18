@@ -15,19 +15,19 @@ metadata {
 		command "poll"
         
 		command "offbtn"
-		command "heatbtn"
+		command "coolbtn"
 		command "setThermostatMode", ["string"]
 		command "levelUpDown"
 		command "levelUp"
 		command "levelDown"
-		command "heatingSetpointUp"
-		command "heatingSetpointDown"
+		command "coolingSetpointUp"
+		command "coolingSetpointDown"
 		command "log"
 		command "changeMode"
 		command "setVirtualTemperature", ["number"]
-		command "setHeatingStatus", ["boolean"]
+		command "setCoolingStatus", ["boolean"]
 		command "setEmergencyMode", ["boolean"]
-		command "setHeatingOff", ["boolean"]
+		command "setCoolingOff", ["boolean"]
         
 		attribute "temperatureUnit", "string"
 		attribute "targetTemp", "string"
@@ -53,15 +53,15 @@ metadata {
 			}
 			tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
 				attributeState("idle",		backgroundColor: "#44B621")
-				attributeState("heating",	backgroundColor: "#FFA81E")
+				attributeState("cooling",	backgroundColor: "#007ee6")
 				attributeState("off",		backgroundColor: "#ddcccc")
 				attributeState("emergency",	backgroundColor: "#e60000")
 			}
 			tileAttribute("device.thermostatMode", key: "THERMOSTAT_MODE") {
 				attributeState("off", label:'Off')
-				attributeState("heat", label:'Heat')
+				attributeState("cool", label:'Cool')
 			}
-			tileAttribute("device.thermostatSetpoint", key: "HEATING_SETPOINT") {
+			tileAttribute("device.thermostatSetpoint", key: "COOLING_SETPOINT") {
 				attributeState("default", label:'${currentValue}')
 			}
 		}
@@ -71,35 +71,35 @@ metadata {
 		}
 		standardTile("thermostatMode", "device.thermostatMode", width:2, height:2, decoration: "flat") {
 			state("off", 	action:"changeMode", nextState: "updating", icon: "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/off_icon.png")
-			state("heat", 	action:"changeMode", nextState: "updating", icon: "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/heat_icon.png")
+			state("cool", 	action:"changeMode", nextState: "updating", icon: "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/cool_icon.png")
 			state("Updating", label:"", icon: "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/cmd_working.png")
 		}
         
 		standardTile("offBtn", "device.off", width:1, height:1, decoration: "flat") {
 			state("Off", action: "offbtn", icon: "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/off_icon.png")
 		}
-		standardTile("heatBtn", "device.canHeat", width:1, height:1, decoration: "flat") {
-			state("Heat", action: "heatbtn", icon: "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/heat_icon.png")
+		standardTile("coolBtn", "device.canCool", width:1, height:1, decoration: "flat") {
+			state("Cool", action: "coolbtn", icon: "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/cool_icon.png")
 			state "false", label: ''
 		}
 		standardTile("refresh", "device.refresh", width:2, height:2, decoration: "flat") {
 			state "Refresh", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-		valueTile("heatingSetpoint", "device.thermostatSetpoint", width: 1, height: 1) {
-			state("heatingSetpoint", label:'${currentValue}', unit: unitString(), foregroundColor: "#FFFFFF",
-				backgroundColors: [ [value: 0, color: "#FFFFFF"], [value: 7, color: "#FF3300"], [value: 15, color: "#FF3300"] ])
-			state("disabled", label: '', foregroundColor: "#FFFFFF", backgroundColor: "#FFFFFF")
+		valueTile("coolingSetpoint", "device.thermostatSetpoint", width: 1, height: 1) {
+			state("coolingSetpoint", label:'${currentValue}', unit: unitString(), foregroundColor: "#FFFFFF",
+				backgroundColors: [ [value: 0, color: "#007ee6"], [value: 7, color: "#007ee6"], [value: 15, color: "#007ee6"] ])
+			state("disabled", label: '', foregroundColor: "#007ee6", backgroundColor: "#007ee6")
 		}
-		standardTile("heatingSetpointUp", "device.thermostatSetpoint", width: 1, height: 1, canChangeIcon: true, decoration: "flat") {
-			state "default", label: '', action:"heatingSetpointUp", icon:"https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/heat_arrow_up.png"
+		standardTile("coolingSetpointUp", "device.thermostatSetpoint", width: 1, height: 1, canChangeIcon: true, decoration: "flat") {
+			state "default", label: '', action:"coolingSetpointUp", icon:"https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/cool_arrow_up.png"
 			state "", label: ''
 		}
-		standardTile("heatingSetpointDown", "device.thermostatSetpoint",  width: 1, height: 1, canChangeIcon: true, decoration: "flat") {
-			state "default", label:'', action:"heatingSetpointDown", icon:"https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/heat_arrow_down.png"
+		standardTile("coolingSetpointDown", "device.thermostatSetpoint",  width: 1, height: 1, canChangeIcon: true, decoration: "flat") {
+			state "default", label:'', action:"coolingSetpointDown", icon:"https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/cool_arrow_down.png"
 			state "", label: ''
 		}
-		controlTile("heatSliderControl", "device.thermostatSetpoint", "slider", height: 1, width: 3, range: getRange(), inactiveLabel: false) {
-			state "default", action:"setHeatingSetpoint", backgroundColor:"#FF3300"
+		controlTile("coolSliderControl", "device.thermostatSetpoint", "slider", height: 1, width: 3, range: getRange(), inactiveLabel: false) {
+			state "default", action:"setCoolingSetpoint", backgroundColor:"#007ee6"
 			state "", label: ''
 		}
         
@@ -131,8 +131,8 @@ metadata {
 
 		main("temp2")
 		details( ["temperature", "thermostatMode",
-				"heatingSetpointDown", "heatingSetpoint", "heatingSetpointUp",
-				"heatSliderControl", "offBtn", "heatBtn", "refresh",
+				"coolingSetpointDown", "coolingSetpoint", "coolingSetpointUp",
+				"coolSliderControl", "offBtn", "coolBtn", "refresh",
                 "tempName1", "tempName2", "tempName3", "tempName4",
                 "tempSensor1", "tempSensor2", "tempSensor3", "tempSensor4"] )
 	}
@@ -143,7 +143,7 @@ metadata {
 }
 
 def shouldReportInCentigrade() {
-	def retVal = true  //Set this to true for Centigrade, false for Fahrenheit  so that enums and colors are correct (due to ST issue of compile time evaluation)
+	def retVal = false  //Set this to true for Centigrade, false for Fahrenheit  so that enums and colors are correct (due to ST issue of compile time evaluation)
 	try {
     	def ts = getTemperatureScale();
     	retVal = ts == "C"
@@ -169,9 +169,9 @@ private initialize() {
 
     sendEvent(name:"temperature", value: defaultTemp(), unit: unitString(), displayed: false)
     sendEvent(name:"thermostatSetpoint", value: defaultTemp(), unit: unitString(), displayed: false)
-    sendEvent(name: "heatingSetpoint", value: defaultTemp(), unit: unitString(), displayed: false)
+    sendEvent(name: "coolingSetpoint", value: defaultTemp(), unit: unitString(), displayed: false)
   	sendEvent(name:"thermostatOperatingState", value: "off")
-    sendEvent(name:"thermostatMode", value: "heat")
+    sendEvent(name:"thermostatMode", value: "cool")
 }
 
 def getTempColors() {
@@ -212,32 +212,32 @@ def getTemperature() {
 	return device.currentValue("temperature")
 }
 
-def setHeatingSetpoint(temp) {
+def setCoolingSetpoint(temp) {
     log.debug "setting temp to: $temp"
 	sendEvent(name:"thermostatSetpoint", value: temp, unit: unitString())
-	sendEvent(name:"heatingSetpoint", value: temp, unit: unitString())
+	sendEvent(name:"coolingSetpoint", value: temp, unit: unitString())
 	refresh()
 	runIn(10, refresh)
 }
 
-def heatingSetpointUp() {
+def coolingSetpointUp() {
 	def hsp = device.currentValue("thermostatSetpoint")
-	setHeatingSetpoint(hsp + 1.0)
+	setCoolingSetpoint(hsp + 1.0)
 }
 
-def heatingSetpointDown() {
+def coolingSetpointDown() {
 	def hsp = device.currentValue("thermostatSetpoint")
-	setHeatingSetpoint(hsp - 1.0)
+	setCoolingSetpoint(hsp - 1.0)
 }
 
 def levelUp() {
 	def hsp = device.currentValue("thermostatSetpoint")
-    setHeatingSetpoint(hsp + 1.0)
+    setCoolingSetpoint(hsp + 1.0)
 }
 
 def levelDown() {
     def hsp = device.currentValue("thermostatSetpoint")
-    setHeatingSetpoint(hsp - 1.0)
+    setCoolingSetpoint(hsp - 1.0)
 }
 
 private void done() {
@@ -256,7 +256,7 @@ def refresh() {
     sendEvent(name: "thermostatMode", value: getThermostatMode())
     sendEvent(name: "thermostatOperatingState", value: getOperatingState())
     sendEvent(name: "thermostatSetpoint", value: getThermostatSetpoint(), unit: unitString())
-    sendEvent(name: "heatingSetpoint", value: getHeatingSetpoint(), unit: unitString())
+    sendEvent(name: "coolingSetpoint", value: getCoolingSetpoint(), unit: unitString())
     sendEvent(name: "temperature", value: getTemperature(), unit: unitString())
     done()
 }
@@ -269,16 +269,16 @@ def getOperatingState() {
 def getThermostatSetpoint() {
 	return device.currentValue("thermostatSetpoint")
 }
-def getHeatingSetpoint() {
-	return device.currentValue("heatingSetpoint")
+def getCoolingSetpoint() {
+	return device.currentValue("coolingSetpoint")
 }
 def poll() {
 }
 def offbtn() {
 	sendEvent(name: "thermostatMode", value: "off")
 }
-def heatbtn() {
-	sendEvent(name: "thermostatMode", value: "heat")
+def coolbtn() {
+	sendEvent(name: "thermostatMode", value: "cool")
 }
 def setThermostatMode(mode) {
     sendEvent(name: "thermostatMode", value: mode)
@@ -288,7 +288,7 @@ def levelUpDown() {
 def log() {
 }
 def changeMode() {
-	def val = device.currentValue("thermostatMode") == "off" ? "heat" : "off"
+	def val = device.currentValue("thermostatMode") == "off" ? "cool" : "off"
 	sendEvent(name: "thermostatMode", value: val)
     return val
 }
@@ -325,12 +325,12 @@ def clearSensorData() {
     sendEvent(name:"name4", value: null, displayed: false)
     sendEvent(name:"temp4", value: null, unit: unitString(), displayed: false)
 }
-def setHeatingStatus(bool) {
-	sendEvent(name:"thermostatOperatingState", value: bool ? "heating" : "idle")
+def setCoolingStatus(bool) {
+	sendEvent(name:"thermostatOperatingState", value: bool ? "cooling" : "idle")
 }
 def setEmergencyMode(bool) {
     sendEvent(name: "thermostatOperatingState", value: bool ? "emergency" : "idle")
 }
-def setHeatingOff(bool) {
+def setCoolingOff(bool) {
 	sendEvent(name:"thermostatOperatingState", value: bool ? "off": "idle")
 }
